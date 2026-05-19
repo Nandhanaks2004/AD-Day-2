@@ -1,0 +1,3048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 6 — Group Policy Objects (GPO) | CyberAcademy Enterprise</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0f14;
+  --bg2: #111827;
+  --bg3: #0f1923;
+  --card: rgba(255,255,255,0.04);
+  --card-hover: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(16,185,129,0.3);
+  --emerald: #10b981;
+  --emerald-dim: rgba(16,185,129,0.15);
+  --emerald-glow: rgba(16,185,129,0.4);
+  --cyan: #06b6d4;
+  --cyan-dim: rgba(6,182,212,0.12);
+  --heading: #f8fafc;
+  --body: #cbd5e1;
+  --muted: #64748b;
+  --sidebar-w: 260px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--body);
+  font-family: 'Manrope', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg3);
+  border-right: 1px solid var(--border);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--emerald-dim) transparent;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo .day-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--emerald);
+  font-family: 'Sora', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.sidebar-logo h2 {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--heading);
+  line-height: 1.4;
+}
+
+.sidebar-logo p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.sidebar-progress {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.progress-bar {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  color: var(--heading);
+  background: var(--card);
+  border-left-color: rgba(16,185,129,0.3);
+}
+
+.nav-item.active {
+  color: var(--emerald);
+  background: var(--emerald-dim);
+  border-left-color: var(--emerald);
+}
+
+.nav-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  min-width: 20px;
+}
+
+.nav-item.active .nav-num {
+  color: var(--emerald);
+}
+
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.sidebar-footer .course-tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.pulse-dot {
+  width: 6px; height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  margin-left: var(--sidebar-w);
+  min-height: 100vh;
+}
+
+/* ===== HERO ===== */
+.hero {
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0b0f14 0%, #0d1520 50%, #0b0f14 100%);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: 30%;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(6,182,212,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  align-items: center;
+}
+
+.hero-left {
+  padding: 80px 60px 80px 60px;
+}
+
+.hero-day-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,0.25);
+  color: var(--emerald);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 6px 14px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+  animation: fadeInUp 0.6s ease both;
+}
+
+.hero-title {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 800;
+  color: var(--heading);
+  line-height: 1.1;
+  margin-bottom: 16px;
+  animation: fadeInUp 0.6s 0.1s ease both;
+}
+
+.hero-title span {
+  background: linear-gradient(135deg, var(--emerald), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: var(--body);
+  margin-bottom: 36px;
+  max-width: 440px;
+  animation: fadeInUp 0.6s 0.2s ease both;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+  animation: fadeInUp 0.6s 0.3s ease both;
+}
+
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--body);
+}
+
+.meta-chip .icon {
+  font-size: 14px;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  animation: fadeInUp 0.6s 0.4s ease both;
+}
+
+.tag {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+
+.tag.em { color: var(--emerald); border-color: rgba(16,185,129,0.2); background: var(--emerald-dim); }
+.tag.cy { color: var(--cyan); border-color: rgba(6,182,212,0.2); background: var(--cyan-dim); }
+
+/* HERO RIGHT — animated diagram */
+.hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  position: relative;
+}
+
+.policy-diagram {
+  position: relative;
+  width: 340px;
+  animation: fadeIn 1s 0.5s ease both;
+}
+
+.pd-node {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 24px;
+  text-align: center;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.pd-node:hover {
+  border-color: var(--emerald);
+  box-shadow: 0 0 20px var(--emerald-glow);
+}
+
+.pd-node.admin { border-color: rgba(16,185,129,0.4); }
+.pd-node.gpo { border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.04); }
+.pd-node.client { border-color: rgba(16,185,129,0.2); }
+
+.pd-node-icon {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.pd-node-label {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.pd-node-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.pd-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 2px;
+}
+
+.pd-arrow-line {
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--emerald), var(--cyan));
+  position: relative;
+  overflow: hidden;
+}
+
+.pd-arrow-line::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0; right: 0;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, white, transparent);
+  animation: flowDown 2s infinite;
+}
+
+@keyframes flowDown {
+  0% { top: -100%; }
+  100% { top: 200%; }
+}
+
+.pd-arrow-tip {
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--cyan);
+}
+
+.pd-clients {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pd-client {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  animation: clientPulse 3s infinite;
+}
+
+.pd-client:nth-child(2) { animation-delay: 0.5s; }
+.pd-client:nth-child(3) { animation-delay: 1s; }
+
+@keyframes clientPulse {
+  0%, 100% { border-color: var(--border); }
+  50% { border-color: rgba(16,185,129,0.4); box-shadow: 0 0 10px rgba(16,185,129,0.1); }
+}
+
+.pd-client-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+.restriction-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.r-tag {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--emerald);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 3px 8px;
+  border-radius: 3px;
+  animation: tagAppear 0.5s ease both;
+}
+
+@keyframes tagAppear {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== SECTIONS ===== */
+section {
+  padding: 80px 60px;
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-header {
+  margin-bottom: 48px;
+}
+
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--emerald);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-num::after {
+  content: '';
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: var(--emerald);
+}
+
+.section-title {
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  color: var(--heading);
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+
+.section-desc {
+  font-size: 15px;
+  color: var(--body);
+  max-width: 600px;
+  line-height: 1.7;
+}
+
+/* ===== OUTCOME CARDS ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.glass-card:hover {
+  background: var(--card-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 20px var(--emerald-dim);
+}
+
+.card-icon {
+  font-size: 32px;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.card-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 8px;
+}
+
+.card-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ===== ENTERPRISE STORY ===== */
+.split-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.story-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+}
+
+.story-scenario-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--emerald);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.story-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.story-items li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--body);
+}
+
+.story-items li::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--emerald);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.story-question {
+  background: var(--bg3);
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 13px;
+  color: var(--cyan);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Network diagram */
+.net-diagram {
+  position: relative;
+}
+
+.net-svg-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+/* ===== POLICY CARDS ===== */
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.policy-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.policy-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--emerald-dim), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.policy-card:hover {
+  border-color: var(--emerald);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 20px var(--emerald-dim);
+}
+
+.policy-card:hover::before { opacity: 1; }
+
+.policy-card-icon { font-size: 36px; display: block; margin-bottom: 12px; position: relative; }
+.policy-card-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.policy-card-body {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  position: relative;
+}
+
+.policy-card-reveal {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: none;
+}
+
+.policy-card:hover .policy-card-reveal { display: block; }
+
+.risk-badge {
+  display: inline-block;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #f87171;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+}
+
+/* ===== COMPARISON ===== */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.compare-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.compare-box:hover { border-color: var(--emerald); box-shadow: 0 0 30px var(--emerald-dim); }
+.compare-box.domain:hover { border-color: var(--cyan); box-shadow: 0 0 30px var(--cyan-dim); }
+
+.compare-box h3 {
+  font-family: 'Sora', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 8px;
+}
+
+.compare-icon { font-size: 48px; margin: 16px 0; }
+
+.compare-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.compare-target {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--body);
+  transition: all 0.3s;
+}
+
+.compare-box:hover .compare-target {
+  border-color: rgba(16,185,129,0.4);
+  color: var(--emerald);
+}
+
+.compare-box.domain:hover .compare-target {
+  border-color: rgba(6,182,212,0.4);
+  color: var(--cyan);
+}
+
+/* ===== PASSWORD MODULE ===== */
+.pw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.pw-example {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.pw-label {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.pw-label.weak { color: #f87171; }
+.pw-label.strong { color: var(--emerald); }
+
+.pw-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--heading);
+  margin-bottom: 12px;
+}
+
+.pw-meter {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.pw-meter-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+
+.pw-meter-fill.weak { width: 20%; background: #ef4444; }
+.pw-meter-fill.strong { width: 95%; background: linear-gradient(90deg, var(--emerald), var(--cyan)); }
+
+.pw-meter-label { font-size: 11px; color: var(--muted); }
+
+.lockout-vis {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.lockout-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 16px;
+}
+
+.attempt-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--body);
+}
+
+.attempt-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 20px;
+}
+
+.attempt-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.attempt-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: #ef4444;
+}
+
+.attempt-status {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.status-fail { background: rgba(239,68,68,0.1); color: #f87171; }
+.status-lock { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
+/* ===== SECURITY BASELINES ===== */
+.baseline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.baseline-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: all 0.3s;
+}
+
+.baseline-item:hover { border-color: var(--emerald); background: var(--card-hover); }
+
+.baseline-check {
+  width: 32px; height: 32px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--emerald);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.baseline-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 4px;
+}
+
+.baseline-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ===== SIMULATION ===== */
+.sim-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.sim-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.sim-tab {
+  flex: 1;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.sim-tab.active { color: var(--emerald); border-bottom-color: var(--emerald); background: var(--emerald-dim); }
+.sim-tab:hover:not(.active) { color: var(--body); background: var(--card); }
+
+.sim-content {
+  padding: 32px;
+}
+
+.sim-panel { display: none; }
+.sim-panel.active { display: block; }
+
+.sim-flow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  margin-bottom: 28px;
+}
+
+.sim-step {
+  text-align: center;
+  position: relative;
+  padding: 0 8px;
+}
+
+.sim-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -4px; top: 20px;
+  width: 8px; height: 2px;
+  background: linear-gradient(90deg, var(--emerald), var(--cyan));
+}
+
+.sim-step-icon {
+  width: 40px; height: 40px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin: 0 auto 8px;
+  transition: all 0.3s;
+}
+
+.sim-step.active .sim-step-icon {
+  border-color: var(--emerald);
+  box-shadow: 0 0 15px var(--emerald-dim);
+}
+
+.sim-step-label { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+.before-after {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ba-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.ba-box.after { border-color: rgba(16,185,129,0.3); }
+
+.ba-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+
+.ba-label.before-l { color: var(--muted); }
+.ba-label.after-l { color: var(--emerald); }
+
+.ba-content {
+  font-size: 13px;
+  color: var(--body);
+  line-height: 1.6;
+}
+
+.sim-run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,0.3);
+  color: var(--emerald);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 20px;
+}
+
+.sim-run-btn:hover { background: rgba(16,185,129,0.25); box-shadow: 0 0 20px var(--emerald-dim); }
+
+/* ===== TIMELINE LAB ===== */
+.lab-timeline {
+  position: relative;
+  padding-left: 40px;
+}
+
+.lab-timeline::before {
+  content: '';
+  position: absolute;
+  left: 16px; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--emerald), var(--cyan), var(--emerald));
+}
+
+.lab-step {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.lab-step-dot {
+  position: absolute;
+  left: -30px; top: 20px;
+  width: 14px; height: 14px;
+  background: var(--bg);
+  border: 2px solid var(--emerald);
+  border-radius: 50%;
+  z-index: 1;
+  transition: all 0.3s;
+}
+
+.lab-step-inner {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lab-step-inner:hover { border-color: rgba(16,185,129,0.3); }
+
+.lab-step-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.step-num-badge {
+  width: 28px; height: 28px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--emerald);
+  flex-shrink: 0;
+}
+
+.step-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading);
+  flex: 1;
+}
+
+.step-chevron {
+  color: var(--muted);
+  font-size: 12px;
+  transition: transform 0.3s;
+}
+
+.lab-step-body {
+  display: none;
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.lab-step-body.open { display: block; }
+
+.lab-step.open .step-chevron { transform: rotate(180deg); }
+.lab-step.open .lab-step-dot { background: var(--emerald); box-shadow: 0 0 10px var(--emerald-glow); }
+
+.step-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.step-explain { font-size: 13px; color: var(--body); line-height: 1.7; }
+
+.step-note {
+  background: var(--bg3);
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+.step-note strong { color: var(--cyan); }
+
+/* ===== TERMINAL ===== */
+.terminal-block {
+  background: #0a0d12;
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.term-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.term-dots { display: flex; gap: 6px; }
+.term-dots span {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.term-dots span:nth-child(1) { background: #ff5f57; }
+.term-dots span:nth-child(2) { background: #febc2e; }
+.term-dots span:nth-child(3) { background: #28c840; }
+
+.term-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  font-family: 'Manrope', sans-serif;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover { color: var(--emerald); border-color: rgba(16,185,129,0.4); }
+
+.term-body {
+  padding: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.term-prompt { color: var(--emerald); }
+.term-cmd { color: #f8fafc; }
+.term-output { color: #94a3b8; margin-top: 4px; }
+.term-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--emerald);
+  vertical-align: middle;
+  animation: blink 1.2s infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* ===== TROUBLESHOOTING ===== */
+.trouble-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.trouble-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.trouble-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.trouble-header:hover { background: var(--card-hover); }
+
+.trouble-icon {
+  width: 32px; height: 32px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.trouble-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--heading);
+  flex: 1;
+}
+
+.trouble-body {
+  display: none;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.trouble-body.open { display: block; }
+
+.trouble-causes {
+  margin-bottom: 12px;
+}
+
+.trouble-causes-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.cause-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--body);
+  margin-bottom: 4px;
+}
+
+.cause-item::before {
+  content: '▸';
+  color: #f87171;
+  margin-top: 2px;
+}
+
+.fix-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--body);
+  margin-bottom: 4px;
+}
+
+.fix-item::before {
+  content: '✓';
+  color: var(--emerald);
+  margin-top: 2px;
+}
+
+/* ===== ASSESSMENT ===== */
+.quiz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.quiz-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s;
+}
+
+.quiz-card:hover { border-color: rgba(16,185,129,0.2); }
+
+.quiz-type {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--cyan);
+  margin-bottom: 10px;
+}
+
+.quiz-q {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--heading);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.reveal-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reveal-btn:hover { border-color: var(--emerald); color: var(--emerald); }
+
+.quiz-answer {
+  display: none;
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--emerald-dim);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--body);
+  line-height: 1.6;
+  animation: slideDown 0.3s ease;
+}
+
+.quiz-answer.visible { display: block; }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== RECAP ===== */
+.recap-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  max-width: 500px;
+  margin: 0 auto 48px;
+}
+
+.recap-node {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 32px;
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+  transition: all 0.3s;
+}
+
+.recap-node:hover { border-color: var(--emerald); box-shadow: 0 0 20px var(--emerald-dim); }
+
+.recap-node.highlight {
+  border-color: rgba(16,185,129,0.4);
+  background: var(--emerald-dim);
+}
+
+.recap-node-icon { font-size: 24px; margin-bottom: 6px; }
+.recap-node-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.recap-node-sub { font-size: 11px; color: var(--muted); }
+
+.recap-connector {
+  width: 2px;
+  height: 32px;
+  background: linear-gradient(to bottom, var(--emerald), var(--cyan));
+  position: relative;
+  overflow: hidden;
+}
+
+.recap-connector::after {
+  content: '';
+  position: absolute;
+  top: -100%; left: 0; right: 0; height: 100%;
+  background: linear-gradient(to bottom, transparent, white, transparent);
+  animation: flowDown 1.5s infinite;
+}
+
+.recap-skills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.skill-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--body);
+}
+
+.skill-check {
+  color: var(--emerald);
+  font-size: 14px;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== MOBILE NAV ===== */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  z-index: 200;
+  align-items: center;
+  padding: 0 16px;
+  justify-content: space-between;
+}
+
+.mobile-nav-title {
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--heading);
+}
+
+.hamburger {
+  background: none;
+  border: none;
+  color: var(--body);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 56px; left: 0; right: 0; bottom: 0;
+  background: var(--bg3);
+  z-index: 150;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.mobile-menu.open { display: block; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .mobile-nav { display: flex; }
+  .hero-inner { padding-top: 56px; }
+  section { padding: 60px 32px; }
+  .hero-left { padding: 60px 32px; }
+  .hero-right { padding: 40px 32px; display: none; }
+  .hero-inner { grid-template-columns: 1fr; }
+  .split-layout { grid-template-columns: 1fr; }
+  .pw-grid { grid-template-columns: 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .step-grid { grid-template-columns: 1fr; }
+  .sim-flow { grid-template-columns: 1fr 1fr; }
+  .before-after { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  section { padding: 48px 20px; }
+  .hero-left { padding: 48px 20px; }
+  .sim-flow { grid-template-columns: 1fr 1fr; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .policy-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== DIVIDER ===== */
+.content-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 40px 0;
+}
+
+/* ===== INFO BOX ===== */
+.info-box {
+  background: var(--cyan-dim);
+  border: 1px solid rgba(6,182,212,0.2);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--body);
+  margin-top: 16px;
+}
+
+.info-box-icon { color: var(--cyan); font-size: 16px; flex-shrink: 0; margin-top: 2px; }
+
+/* ===== ANALOGY BOX ===== */
+.analogy-box {
+  background: var(--card);
+  border-left: 3px solid var(--emerald);
+  border-radius: 0 10px 10px 0;
+  padding: 20px 24px;
+  margin: 24px 0;
+}
+
+.analogy-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--emerald);
+  margin-bottom: 8px;
+}
+
+.analogy-text {
+  font-size: 14px;
+  color: var(--body);
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ===== FLOW CHAIN ===== */
+.flow-chain {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin: 20px 0;
+}
+
+.flow-node {
+  background: var(--bg3);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--emerald);
+}
+
+.flow-arrow {
+  color: var(--muted);
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="day-badge">⬡ CyberAcademy Enterprise</div>
+    <h2>Day 6 — Group Policy Objects</h2>
+    <p>Enterprise Security Administration</p>
+  </div>
+
+  <div class="sidebar-progress">
+    <div class="progress-label">
+      <span>Course Progress</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#intro" class="nav-item active"><span class="nav-num">01</span> Introduction</a>
+    <a href="#what-gpo" class="nav-item"><span class="nav-num">02</span> What is GPO</a>
+    <a href="#use-cases" class="nav-item"><span class="nav-num">03</span> Enterprise Use Cases</a>
+    <a href="#processing" class="nav-item"><span class="nav-num">04</span> GPO Processing</a>
+    <a href="#password" class="nav-item"><span class="nav-num">05</span> Password Policies</a>
+    <a href="#baselines" class="nav-item"><span class="nav-num">06</span> Security Baselines</a>
+    <a href="#simulation" class="nav-item"><span class="nav-num">07</span> Live Demonstration</a>
+    <a href="#lab" class="nav-item"><span class="nav-num">08</span> Enterprise Lab</a>
+    <a href="#assessment" class="nav-item"><span class="nav-num">09</span> Assessment</a>
+    <a href="#troubleshooting" class="nav-item"><span class="nav-num">10</span> Troubleshooting</a>
+    <a href="#recap" class="nav-item"><span class="nav-num">11</span> Recap</a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="course-tag">
+      <div class="pulse-dot"></div>
+      <span>Enterprise Security Track · Day 6 of 12</span>
+    </div>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <div class="mobile-nav-title">Day 6 — GPO</div>
+  <button class="hamburger" onclick="toggleMenu()">☰</button>
+</div>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#intro" class="nav-item" onclick="closeMenu()"><span class="nav-num">01</span> Introduction</a>
+  <a href="#what-gpo" class="nav-item" onclick="closeMenu()"><span class="nav-num">02</span> What is GPO</a>
+  <a href="#use-cases" class="nav-item" onclick="closeMenu()"><span class="nav-num">03</span> Enterprise Use Cases</a>
+  <a href="#processing" class="nav-item" onclick="closeMenu()"><span class="nav-num">04</span> GPO Processing</a>
+  <a href="#password" class="nav-item" onclick="closeMenu()"><span class="nav-num">05</span> Password Policies</a>
+  <a href="#baselines" class="nav-item" onclick="closeMenu()"><span class="nav-num">06</span> Security Baselines</a>
+  <a href="#simulation" class="nav-item" onclick="closeMenu()"><span class="nav-num">07</span> Live Demo</a>
+  <a href="#lab" class="nav-item" onclick="closeMenu()"><span class="nav-num">08</span> Enterprise Lab</a>
+  <a href="#assessment" class="nav-item" onclick="closeMenu()"><span class="nav-num">09</span> Assessment</a>
+  <a href="#troubleshooting" class="nav-item" onclick="closeMenu()"><span class="nav-num">10</span> Troubleshooting</a>
+  <a href="#recap" class="nav-item" onclick="closeMenu()"><span class="nav-num">11</span> Recap</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero" id="intro">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <div class="hero-day-badge">◆ DAY 6 &nbsp;·&nbsp; ENTERPRISE ADMINISTRATION</div>
+        <h1 class="hero-title">Group Policy<br><span>Objects (GPO)</span></h1>
+        <p class="hero-subtitle">Enterprise Security &amp; Centralized Policy Enforcement — control what every user can do across hundreds of systems from a single console.</p>
+
+        <div class="hero-meta">
+          <div class="meta-chip"><span class="icon">⏱</span> 6–8 Hours</div>
+          <div class="meta-chip"><span class="icon">📶</span> Intermediate</div>
+          <div class="meta-chip"><span class="icon">🖥</span> Windows Server</div>
+          <div class="meta-chip"><span class="icon">🏢</span> Enterprise</div>
+        </div>
+
+        <div class="hero-tags">
+          <span class="tag em">GPO</span>
+          <span class="tag em">Active Directory</span>
+          <span class="tag cy">GPMC</span>
+          <span class="tag cy">gpupdate</span>
+          <span class="tag">Password Policy</span>
+          <span class="tag">Security Baselines</span>
+          <span class="tag">USB Restriction</span>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="policy-diagram">
+          <!-- Admin -->
+          <div class="pd-node admin">
+            <span class="pd-node-icon">👨‍💼</span>
+            <div class="pd-node-label">Administrator</div>
+            <div class="pd-node-sub">Creates &amp; manages policies</div>
+          </div>
+
+          <div class="pd-arrow">
+            <div class="pd-arrow-line"></div>
+            <div class="pd-arrow-tip"></div>
+          </div>
+
+          <!-- GPO -->
+          <div class="pd-node gpo">
+            <span class="pd-node-icon">📋</span>
+            <div class="pd-node-label">Group Policy Object</div>
+            <div class="pd-node-sub">Domain Controller · GPMC</div>
+          </div>
+
+          <div class="pd-arrow">
+            <div class="pd-arrow-line"></div>
+            <div class="pd-arrow-tip"></div>
+          </div>
+
+          <!-- Clients -->
+          <div class="pd-clients">
+            <div class="pd-client">
+              <span class="pd-client-icon">💻</span>HR Dept
+            </div>
+            <div class="pd-client">
+              <span class="pd-client-icon">💻</span>Finance
+            </div>
+            <div class="pd-client">
+              <span class="pd-client-icon">💻</span>IT Dept
+            </div>
+          </div>
+
+          <div class="restriction-tags" style="animation-delay:1s">
+            <span class="r-tag">🔒 USB Blocked</span>
+            <span class="r-tag">🔑 Strong Passwords</span>
+            <span class="r-tag">🚫 Control Panel</span>
+            <span class="r-tag">🖼 Wallpaper Set</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUTCOME CARDS -->
+  <section id="outcomes">
+    <div class="section-header">
+      <div class="section-num">Learning Outcomes</div>
+      <h2 class="section-title">What You'll Master Today</h2>
+      <p class="section-desc">By the end of Day 6, you will be able to plan, configure, and verify enterprise-wide security policies using Group Policy Objects.</p>
+    </div>
+    <div class="cards-grid">
+      <div class="glass-card">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Understand GPO</div>
+        <div class="card-desc">Grasp core concepts of centralized policy management and how enterprise-wide configurations are enforced automatically.</div>
+      </div>
+      <div class="glass-card">
+        <span class="card-icon">🏢</span>
+        <div class="card-title">Enterprise Security</div>
+        <div class="card-desc">See how organizations use GPO to standardize security configurations across hundreds of systems simultaneously.</div>
+      </div>
+      <div class="glass-card">
+        <span class="card-icon">🔒</span>
+        <div class="card-title">Policy Enforcement</div>
+        <div class="card-desc">Configure restrictions like USB blocking, Control Panel lockdown, and application restrictions in a real domain environment.</div>
+      </div>
+      <div class="glass-card">
+        <span class="card-icon">⚙️</span>
+        <div class="card-title">Hands-On Administration</div>
+        <div class="card-desc">Perform a full enterprise lab: create GPOs, link to OUs, force updates, and verify live restrictions on client machines.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTERPRISE STORY -->
+  <section id="story">
+    <div class="section-header">
+      <div class="section-num">Enterprise Scenario</div>
+      <h2 class="section-title">The Administration Challenge</h2>
+      <p class="section-desc">Before we dive into GPO, understand the real-world problem it solves.</p>
+    </div>
+    <div class="split-layout">
+      <div>
+        <div class="story-box">
+          <div class="story-scenario-title">🏢 Company Requirements</div>
+          <ul class="story-items">
+            <li>Enforce stronger passwords on all employee accounts</li>
+            <li>Block USB devices to prevent data theft and malware</li>
+            <li>Prevent unauthorized software installation</li>
+            <li>Disable Control Panel access on standard machines</li>
+            <li>Standardize company wallpapers across all systems</li>
+            <li>Restrict browser and proxy settings changes</li>
+          </ul>
+          <div class="story-question">
+            💬 "Can administrators configure every one of those 1,000 computers manually? What happens if an employee changes their settings back?"
+          </div>
+        </div>
+
+        <div class="analogy-box" style="margin-top:20px">
+          <div class="analogy-label">Enterprise Analogy</div>
+          <div class="analogy-text">"Think of GPO as a school principal creating rules for every classroom simultaneously — one decision automatically applies everywhere, no manual coordination needed."</div>
+        </div>
+      </div>
+
+      <div>
+        <!-- SVG network diagram -->
+        <svg viewBox="0 0 340 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:380px;display:block;margin:0 auto">
+          <!-- Background nodes -->
+          <defs>
+            <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+            </radialGradient>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#06b6d4"/>
+            </marker>
+          </defs>
+
+          <!-- DC glow -->
+          <ellipse cx="170" cy="80" rx="50" ry="30" fill="url(#glow1)" opacity="0.5"/>
+
+          <!-- Domain Controller -->
+          <rect x="110" y="50" width="120" height="60" rx="10" fill="#111827" stroke="#10b981" stroke-width="1.5"/>
+          <text x="170" y="75" text-anchor="middle" fill="#f8fafc" font-family="Sora,sans-serif" font-size="11" font-weight="700">Domain Controller</text>
+          <text x="170" y="92" text-anchor="middle" fill="#64748b" font-family="Manrope,sans-serif" font-size="9">Windows Server · GPMC</text>
+          <text x="170" y="103" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="9">● ACTIVE</text>
+
+          <!-- Admin -->
+          <rect x="20" y="52" width="75" height="55" rx="8" fill="#0f1923" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+          <text x="58" y="72" text-anchor="middle" font-size="22">👨‍💼</text>
+          <text x="58" y="90" text-anchor="middle" fill="#f8fafc" font-family="Sora,sans-serif" font-size="10" font-weight="700">Admin</text>
+          <text x="58" y="102" text-anchor="middle" fill="#64748b" font-family="Manrope,sans-serif" font-size="8">Creates GPO</text>
+
+          <!-- Arrow admin→DC -->
+          <line x1="95" y1="79" x2="108" y2="79" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="4,2">
+            <animate attributeName="stroke-dashoffset" values="0;-12" dur="1s" repeatCount="indefinite"/>
+          </line>
+
+          <!-- Lines DC → clients -->
+          <line x1="170" y1="110" x2="60" y2="200" stroke="#06b6d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6">
+            <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.2s" repeatCount="indefinite"/>
+          </line>
+          <line x1="170" y1="110" x2="170" y2="200" stroke="#06b6d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6">
+            <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.5s" repeatCount="indefinite"/>
+          </line>
+          <line x1="170" y1="110" x2="280" y2="200" stroke="#06b6d4" stroke-width="1" stroke-dasharray="4,3" opacity="0.6">
+            <animate attributeName="stroke-dashoffset" values="0;-14" dur="1.8s" repeatCount="indefinite"/>
+          </line>
+
+          <!-- Clients -->
+          <!-- HR -->
+          <rect x="15" y="200" width="90" height="65" rx="8" fill="#0f1923" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+          <text x="60" y="220" text-anchor="middle" font-size="20">💻</text>
+          <text x="60" y="238" text-anchor="middle" fill="#f8fafc" font-family="Sora,sans-serif" font-size="10" font-weight="700">HR Dept</text>
+          <text x="60" y="252" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="8">Policy Applied</text>
+          <text x="60" y="260" text-anchor="middle" fill="#64748b" font-family="Manrope,sans-serif" font-size="8">25 machines</text>
+
+          <!-- Finance -->
+          <rect x="125" y="200" width="90" height="65" rx="8" fill="#0f1923" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+          <text x="170" y="220" text-anchor="middle" font-size="20">💻</text>
+          <text x="170" y="238" text-anchor="middle" fill="#f8fafc" font-family="Sora,sans-serif" font-size="10" font-weight="700">Finance</text>
+          <text x="170" y="252" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="8">Policy Applied</text>
+          <text x="170" y="260" text-anchor="middle" fill="#64748b" font-family="Manrope,sans-serif" font-size="8">40 machines</text>
+
+          <!-- IT -->
+          <rect x="235" y="200" width="90" height="65" rx="8" fill="#0f1923" stroke="rgba(16,185,129,0.3)" stroke-width="1"/>
+          <text x="280" y="220" text-anchor="middle" font-size="20">💻</text>
+          <text x="280" y="238" text-anchor="middle" fill="#f8fafc" font-family="Sora,sans-serif" font-size="10" font-weight="700">IT Dept</text>
+          <text x="280" y="252" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="8">Policy Applied</text>
+          <text x="280" y="260" text-anchor="middle" fill="#64748b" font-family="Manrope,sans-serif" font-size="8">60 machines</text>
+
+          <!-- Restriction badges -->
+          <rect x="15" y="280" width="90" height="22" rx="4" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.2)" stroke-width="1"/>
+          <text x="60" y="295" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="9">🔒 USB Blocked</text>
+
+          <rect x="125" y="280" width="90" height="22" rx="4" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.2)" stroke-width="1"/>
+          <text x="170" y="295" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="9">🔑 Pw Policy</text>
+
+          <rect x="235" y="280" width="90" height="22" rx="4" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.2)" stroke-width="1"/>
+          <text x="280" y="295" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="9">🚫 Ctrl Panel</text>
+
+          <!-- Label -->
+          <text x="170" y="345" text-anchor="middle" fill="#64748b" font-family="Manrope,sans-serif" font-size="10">Centralized Policy Synchronization</text>
+          <text x="170" y="360" text-anchor="middle" fill="#10b981" font-family="JetBrains Mono,monospace" font-size="9">125 machines enforced automatically</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT IS GPO -->
+  <section id="what-gpo">
+    <div class="section-header">
+      <div class="section-num">02 — What is GPO</div>
+      <h2 class="section-title">Group Policy Objects Explained</h2>
+      <p class="section-desc">GPO allows administrators to centrally configure and control enterprise computers and users through a single management interface.</p>
+    </div>
+
+    <div class="split-layout" style="margin-bottom:32px">
+      <div>
+        <p style="font-size:15px;color:var(--body);line-height:1.8;margin-bottom:20px">
+          Group Policy Objects (GPOs) are centralized rule sets and configurations that automatically apply to users and computers within an Active Directory environment. Instead of configuring each machine individually, administrators define policies once — and they propagate automatically.
+        </p>
+
+        <div class="analogy-box">
+          <div class="analogy-label">Think of it this way</div>
+          <div class="analogy-text">"GPO is like a company-wide settings file that automatically runs on every computer when it connects to the network — enforcing rules before any employee even logs in."</div>
+        </div>
+
+        <div class="info-box" style="margin-top:20px">
+          <span class="info-box-icon">ℹ️</span>
+          <span>GPOs can target <strong style="color:var(--cyan)">users</strong> (what they can do) or <strong style="color:var(--emerald)">computers</strong> (how the system behaves) — or both simultaneously.</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px">
+          <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--heading);margin-bottom:20px">Common GPO Use Cases</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;color:var(--body)">Strong passwords</span>
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald)">Password Policy</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;color:var(--body)">Block USB drives</span>
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald)">Device Restriction</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;color:var(--body)">Restrict settings</span>
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald)">Admin Templates</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:13px;color:var(--body)">Block software</span>
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald)">App Restriction</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+              <span style="font-size:13px;color:var(--body)">Company wallpaper</span>
+              <span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--emerald)">Desktop Policy</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-chain">
+      <span class="flow-node">👨‍💼 Administrator</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">📋 Creates GPO</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">🏢 Domain Controller</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">💻 All Client Systems</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">🔒 Restrictions Applied</span>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section id="use-cases">
+    <div class="section-header">
+      <div class="section-num">03 — Enterprise Use Cases</div>
+      <h2 class="section-title">Why Companies Deploy GPO</h2>
+      <p class="section-desc">Hover each card to understand the enterprise reasoning, security concern, and real-world impact of each policy type.</p>
+    </div>
+
+    <div class="policy-grid">
+      <div class="policy-card">
+        <span class="policy-card-icon">🔌</span>
+        <div class="policy-card-title">USB Restriction</div>
+        <div class="policy-card-body">Blocks all removable storage devices from connecting to enterprise systems.</div>
+        <div class="policy-card-reveal">
+          <div class="risk-badge">⚠ HIGH RISK</div>
+          <div style="font-size:12px;color:var(--body);line-height:1.5"><strong style="color:var(--emerald)">Purpose:</strong> Prevent malware infection and unauthorized data transfer. Employees can leak confidential data or introduce ransomware via USB drives.</div>
+        </div>
+      </div>
+
+      <div class="policy-card">
+        <span class="policy-card-icon">🔑</span>
+        <div class="policy-card-title">Password Enforcement</div>
+        <div class="policy-card-body">Mandates complexity, minimum length, and expiration for all user accounts.</div>
+        <div class="policy-card-reveal">
+          <div class="risk-badge">⚠ CRITICAL</div>
+          <div style="font-size:12px;color:var(--body);line-height:1.5"><strong style="color:var(--emerald)">Purpose:</strong> Protect accounts from brute-force and credential-stuffing attacks. Weak passwords are the #1 initial access vector for attackers.</div>
+        </div>
+      </div>
+
+      <div class="policy-card">
+        <span class="policy-card-icon">🚫</span>
+        <div class="policy-card-title">Control Panel Lock</div>
+        <div class="policy-card-body">Prevents users from accessing system settings and configuration panels.</div>
+        <div class="policy-card-reveal">
+          <div class="risk-badge">⚠ MEDIUM RISK</div>
+          <div style="font-size:12px;color:var(--body);line-height:1.5"><strong style="color:var(--emerald)">Purpose:</strong> Stop users from changing proxy, firewall, or security settings — preventing security control bypass and misconfiguration.</div>
+        </div>
+      </div>
+
+      <div class="policy-card">
+        <span class="policy-card-icon">🖼</span>
+        <div class="policy-card-title">Wallpaper Policy</div>
+        <div class="policy-card-body">Enforces a standard company wallpaper across all employee workstations.</div>
+        <div class="policy-card-reveal">
+          <div class="risk-badge">ℹ COMPLIANCE</div>
+          <div style="font-size:12px;color:var(--body);line-height:1.5"><strong style="color:var(--emerald)">Purpose:</strong> Brand consistency, displaying security notices or policy reminders, and compliance requirements for regulated industries.</div>
+        </div>
+      </div>
+
+      <div class="policy-card">
+        <span class="policy-card-icon">⛔</span>
+        <div class="policy-card-title">App Restriction</div>
+        <div class="policy-card-body">Blocks installation or execution of unauthorized software on enterprise machines.</div>
+        <div class="policy-card-reveal">
+          <div class="risk-badge">⚠ HIGH RISK</div>
+          <div style="font-size:12px;color:var(--body);line-height:1.5"><strong style="color:var(--emerald)">Purpose:</strong> Prevent malware execution, unlicensed software, and unauthorized tools that could open attack vectors or create liability.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GPO PROCESSING -->
+  <section id="processing">
+    <div class="section-header">
+      <div class="section-num">04 — GPO Processing</div>
+      <h2 class="section-title">Local vs Domain Policy</h2>
+      <p class="section-desc">Hover each panel to understand the scope difference. This distinction is fundamental to enterprise administration.</p>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-box">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Local Policy</div>
+        <div class="compare-icon">💻</div>
+        <h3>Single Machine</h3>
+        <p style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Configured directly on one computer. Changes only affect that specific machine — useful for personal setups or testing.</p>
+        <div class="compare-targets">
+          <div class="compare-target">1 Computer</div>
+          <div class="compare-target">No AD Required</div>
+          <div class="compare-target">Manual Config</div>
+        </div>
+      </div>
+
+      <div class="compare-box domain">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.1em">Domain Policy</div>
+        <div class="compare-icon">🏢</div>
+        <h3>All Enterprise Systems</h3>
+        <p style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Configured once on the Domain Controller. Automatically applies to hundreds of systems across the organization simultaneously.</p>
+        <div class="compare-targets">
+          <div class="compare-target">500+ Computers</div>
+          <div class="compare-target">Active Directory</div>
+          <div class="compare-target">Automatic</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:24px">
+      <span class="info-box-icon">💡</span>
+      <span>Domain GPO <strong style="color:var(--cyan)">overrides</strong> local policies when both exist. This is by design — enterprise security policy must always win over individual machine settings.</span>
+    </div>
+  </section>
+
+  <!-- PASSWORD MODULE -->
+  <section id="password">
+    <div class="section-header">
+      <div class="section-num">05 — Password Policies</div>
+      <h2 class="section-title">Enforcing Authentication Security</h2>
+      <p class="section-desc">Password policies are one of the most critical GPO configurations — directly reducing brute-force and credential attack success rates.</p>
+    </div>
+
+    <div class="pw-grid">
+      <div>
+        <div class="pw-example">
+          <div class="pw-label weak">⚠ Weak Password</div>
+          <div class="pw-value">admin123</div>
+          <div class="pw-meter">
+            <div class="pw-meter-fill weak"></div>
+          </div>
+          <div class="pw-meter-label">Cracked in seconds with brute force</div>
+        </div>
+
+        <div class="pw-example">
+          <div class="pw-label strong">✓ Policy-Compliant Password</div>
+          <div class="pw-value">Admin@Secure2026!</div>
+          <div class="pw-meter">
+            <div class="pw-meter-fill strong"></div>
+          </div>
+          <div class="pw-meter-label">Extremely resistant to automated attacks</div>
+        </div>
+
+        <div class="analogy-box">
+          <div class="analogy-label">Security Connection</div>
+          <div class="analogy-text">Without a GPO password policy, employees choose <em>admin123</em>. Attackers know this. A domain-wide policy forces complexity before accounts are even created.</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="lockout-vis">
+          <div class="lockout-title">🔐 Account Lockout Simulation</div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:16px">After 5 failed attempts, the account locks automatically — stopping brute-force in its tracks.</p>
+
+          <div class="attempt-row">
+            <span class="attempt-num">01</span>
+            <div class="attempt-bar"><div class="attempt-fill" style="width:20%"></div></div>
+            <span class="attempt-status status-fail">FAIL</span>
+          </div>
+          <div class="attempt-row">
+            <span class="attempt-num">02</span>
+            <div class="attempt-bar"><div class="attempt-fill" style="width:40%"></div></div>
+            <span class="attempt-status status-fail">FAIL</span>
+          </div>
+          <div class="attempt-row">
+            <span class="attempt-num">03</span>
+            <div class="attempt-bar"><div class="attempt-fill" style="width:60%"></div></div>
+            <span class="attempt-status status-fail">FAIL</span>
+          </div>
+          <div class="attempt-row">
+            <span class="attempt-num">04</span>
+            <div class="attempt-bar"><div class="attempt-fill" style="width:80%"></div></div>
+            <span class="attempt-status status-fail">FAIL</span>
+          </div>
+          <div class="attempt-row">
+            <span class="attempt-num">05</span>
+            <div class="attempt-bar"><div class="attempt-fill" style="width:100%"></div></div>
+            <span class="attempt-status status-lock">🔒 LOCKED</span>
+          </div>
+
+          <div style="margin-top:16px;padding:12px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:12px;color:#f87171">
+            Account locked for 30 minutes. Administrator notification triggered.
+          </div>
+        </div>
+
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-top:16px">
+          <div style="font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--heading);margin-bottom:12px">GPO Password Settings</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--body)">Minimum Length</span>
+              <span style="color:var(--emerald);font-family:'JetBrains Mono',monospace">8 characters</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--body)">Complexity Required</span>
+              <span style="color:var(--emerald);font-family:'JetBrains Mono',monospace">Enabled</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="color:var(--body)">Lockout Threshold</span>
+              <span style="color:var(--emerald);font-family:'JetBrains Mono',monospace">5 attempts</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:8px 0">
+              <span style="color:var(--body)">Lockout Duration</span>
+              <span style="color:var(--emerald);font-family:'JetBrains Mono',monospace">30 minutes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY BASELINES -->
+  <section id="baselines">
+    <div class="section-header">
+      <div class="section-num">06 — Security Baselines</div>
+      <h2 class="section-title">Enterprise Minimum Security Standards</h2>
+      <p class="section-desc">Security baselines define the minimum required settings every enterprise system must have — creating consistent protection across the entire organization.</p>
+    </div>
+
+    <div class="baseline-grid">
+      <div class="baseline-item">
+        <div class="baseline-check">✓</div>
+        <div>
+          <div class="baseline-title">Password Complexity</div>
+          <div class="baseline-desc">All accounts must meet length and character requirements. Prevents weak credential exploitation.</div>
+        </div>
+      </div>
+      <div class="baseline-item">
+        <div class="baseline-check">✓</div>
+        <div>
+          <div class="baseline-title">Firewall Enabled</div>
+          <div class="baseline-desc">Windows Defender Firewall must be active on all systems, blocking unauthorized network connections.</div>
+        </div>
+      </div>
+      <div class="baseline-item">
+        <div class="baseline-check">✓</div>
+        <div>
+          <div class="baseline-title">USB Devices Blocked</div>
+          <div class="baseline-desc">Removable storage access denied by default. Prevents both data exfiltration and malware introduction.</div>
+        </div>
+      </div>
+      <div class="baseline-item">
+        <div class="baseline-check">✓</div>
+        <div>
+          <div class="baseline-title">Guest Account Disabled</div>
+          <div class="baseline-desc">Built-in guest accounts disabled to eliminate anonymous access entry points.</div>
+        </div>
+      </div>
+      <div class="baseline-item">
+        <div class="baseline-check">✓</div>
+        <div>
+          <div class="baseline-title">Control Panel Restricted</div>
+          <div class="baseline-desc">Standard users cannot modify critical system settings, maintaining security configuration integrity.</div>
+        </div>
+      </div>
+      <div class="baseline-item">
+        <div class="baseline-check">✓</div>
+        <div>
+          <div class="baseline-title">Auto-Lock Screen</div>
+          <div class="baseline-desc">Systems lock automatically after inactivity period, preventing unauthorized physical access.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-chain" style="margin-top:28px">
+      <span class="flow-node">🏢 Enterprise Baseline</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">📋 GPO Applied</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">💻 All Systems</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-node">🛡 Consistent Protection</span>
+    </div>
+  </section>
+
+  <!-- SIMULATION -->
+  <section id="simulation">
+    <div class="section-header">
+      <div class="section-num">07 — Live Demonstration</div>
+      <h2 class="section-title">Policy Enforcement in Action</h2>
+      <p class="section-desc">Watch how a single administrator action cascades into enforced restrictions across client systems — in real time.</p>
+    </div>
+
+    <div class="sim-container">
+      <div class="sim-tabs">
+        <button class="sim-tab active" onclick="switchSim(0)">🚫 Control Panel</button>
+        <button class="sim-tab" onclick="switchSim(1)">🖼 Wallpaper</button>
+        <button class="sim-tab" onclick="switchSim(2)">🔌 USB Block</button>
+        <button class="sim-tab" onclick="switchSim(3)">⛔ App Block</button>
+      </div>
+
+      <div class="sim-content">
+
+        <!-- Control Panel -->
+        <div class="sim-panel active" id="sim-0">
+          <div class="sim-flow">
+            <div class="sim-step active">
+              <div class="sim-step-icon">👨‍💼</div>
+              <div class="sim-step-label">Admin Sets<br>Policy</div>
+            </div>
+            <div class="sim-step">
+              <div class="sim-step-icon">📋</div>
+              <div class="sim-step-label">GPO<br>Configured</div>
+            </div>
+            <div class="sim-step">
+              <div class="sim-step-icon">🏢</div>
+              <div class="sim-step-label">Domain<br>Pushes</div>
+            </div>
+            <div class="sim-step">
+              <div class="sim-step-icon">💻</div>
+              <div class="sim-step-label">Client<br>Restricted</div>
+            </div>
+          </div>
+
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em">Path: User Config → Admin Templates → Control Panel → Prohibit Access</div>
+
+          <div class="before-after">
+            <div class="ba-box">
+              <div class="ba-label before-l">BEFORE POLICY</div>
+              <div class="ba-content">
+                <div style="background:#1a2332;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:12px;font-size:12px">
+                  <div style="color:#f8fafc;margin-bottom:8px">⊞ Control Panel</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                    <div style="color:#94a3b8;font-size:11px">🖥 Display</div>
+                    <div style="color:#94a3b8;font-size:11px">🔒 Security</div>
+                    <div style="color:#94a3b8;font-size:11px">🌐 Network</div>
+                    <div style="color:#94a3b8;font-size:11px">🔧 System</div>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:10px">User has full access to all system settings.</div>
+              </div>
+            </div>
+            <div class="ba-box after">
+              <div class="ba-label after-l">AFTER POLICY APPLIED</div>
+              <div class="ba-content">
+                <div style="background:#1a2332;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:12px;font-size:12px;text-align:center">
+                  <div style="font-size:32px;margin-bottom:8px">🚫</div>
+                  <div style="color:#f87171;font-weight:600">Access Denied</div>
+                  <div style="color:#64748b;font-size:11px;margin-top:4px">This operation has been cancelled due to restrictions in effect on this computer.</div>
+                </div>
+                <div style="font-size:12px;color:var(--emerald);margin-top:10px">✓ Policy enforced centrally.</div>
+              </div>
+            </div>
+          </div>
+          <button class="sim-run-btn" onclick="animateSim(0)">▶ Run Simulation</button>
+        </div>
+
+        <!-- Wallpaper -->
+        <div class="sim-panel" id="sim-1">
+          <div class="sim-flow">
+            <div class="sim-step active"><div class="sim-step-icon">👨‍💼</div><div class="sim-step-label">Path<br>Configured</div></div>
+            <div class="sim-step"><div class="sim-step-icon">📋</div><div class="sim-step-label">GPO<br>Set</div></div>
+            <div class="sim-step"><div class="sim-step-icon">🏢</div><div class="sim-step-label">Policy<br>Pushed</div></div>
+            <div class="sim-step"><div class="sim-step-icon">🖼</div><div class="sim-step-label">Desktop<br>Changed</div></div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em">Path: User Config → Admin Templates → Desktop → Desktop Wallpaper</div>
+          <div class="before-after">
+            <div class="ba-box">
+              <div class="ba-label before-l">BEFORE POLICY</div>
+              <div class="ba-content">
+                <div style="background:#1a3a5c;border:1px solid rgba(255,255,255,0.1);border-radius:6px;height:80px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#64748b">Personal wallpaper set by user</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:10px">Each employee has a different desktop background.</div>
+              </div>
+            </div>
+            <div class="ba-box after">
+              <div class="ba-label after-l">AFTER POLICY APPLIED</div>
+              <div class="ba-content">
+                <div style="background:var(--bg3);border:1px solid rgba(16,185,129,0.3);border-radius:6px;height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px">
+                  <div style="font-size:20px">🏢</div>
+                  <div style="font-size:11px;color:var(--emerald);font-family:'JetBrains Mono',monospace">COMPANY WALLPAPER ENFORCED</div>
+                </div>
+                <div style="font-size:12px;color:var(--emerald);margin-top:10px">✓ Standard corporate branding applied.</div>
+              </div>
+            </div>
+          </div>
+          <button class="sim-run-btn" onclick="animateSim(1)">▶ Run Simulation</button>
+        </div>
+
+        <!-- USB -->
+        <div class="sim-panel" id="sim-2">
+          <div class="sim-flow">
+            <div class="sim-step active"><div class="sim-step-icon">⚙️</div><div class="sim-step-label">Policy<br>Created</div></div>
+            <div class="sim-step"><div class="sim-step-icon">📋</div><div class="sim-step-label">Removable<br>Blocked</div></div>
+            <div class="sim-step"><div class="sim-step-icon">🏢</div><div class="sim-step-label">Domain<br>Pushes</div></div>
+            <div class="sim-step"><div class="sim-step-icon">🔌</div><div class="sim-step-label">USB<br>Denied</div></div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em">Path: Computer Config → Admin Templates → System → Removable Storage → Deny All Access</div>
+          <div class="before-after">
+            <div class="ba-box">
+              <div class="ba-label before-l">BEFORE POLICY</div>
+              <div class="ba-content">
+                <div style="background:#1a2332;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:12px;font-size:12px;text-align:center">
+                  <div style="font-size:24px;margin-bottom:6px">🔌💾</div>
+                  <div style="color:#10b981">USB Drive Connected</div>
+                  <div style="color:#64748b;font-size:11px;margin-top:4px">Drive E: accessible — 32GB</div>
+                </div>
+              </div>
+            </div>
+            <div class="ba-box after">
+              <div class="ba-label after-l">AFTER POLICY APPLIED</div>
+              <div class="ba-content">
+                <div style="background:#1a2332;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:12px;font-size:12px;text-align:center">
+                  <div style="font-size:24px;margin-bottom:6px">⛔</div>
+                  <div style="color:#f87171">Access Denied</div>
+                  <div style="color:#64748b;font-size:11px;margin-top:4px">Removable storage access is restricted by your organization's policy.</div>
+                </div>
+                <div style="font-size:12px;color:var(--emerald);margin-top:10px">✓ Device control enforced by GPO.</div>
+              </div>
+            </div>
+          </div>
+          <button class="sim-run-btn" onclick="animateSim(2)">▶ Run Simulation</button>
+        </div>
+
+        <!-- App Block -->
+        <div class="sim-panel" id="sim-3">
+          <div class="sim-flow">
+            <div class="sim-step active"><div class="sim-step-icon">📝</div><div class="sim-step-label">Rule<br>Defined</div></div>
+            <div class="sim-step"><div class="sim-step-icon">📋</div><div class="sim-step-label">Software<br>Restricted</div></div>
+            <div class="sim-step"><div class="sim-step-icon">🏢</div><div class="sim-step-label">Policy<br>Applied</div></div>
+            <div class="sim-step"><div class="sim-step-icon">⛔</div><div class="sim-step-label">App<br>Blocked</div></div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em">Path: Computer Config → Windows Settings → Security Settings → Software Restriction Policies</div>
+          <div class="before-after">
+            <div class="ba-box">
+              <div class="ba-label before-l">BEFORE POLICY</div>
+              <div class="ba-content">
+                <div style="background:#1a2332;border-radius:6px;padding:12px;font-size:12px">
+                  <div style="color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:12px">C:\> cmd.exe</div>
+                  <div style="color:#f8fafc;margin-top:4px">Microsoft Windows [Version 10]</div>
+                  <div style="color:#94a3b8">C:\Users\Employee&gt; _</div>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:10px">cmd.exe runs freely — attacker-friendly.</div>
+              </div>
+            </div>
+            <div class="ba-box after">
+              <div class="ba-label after-l">AFTER POLICY APPLIED</div>
+              <div class="ba-content">
+                <div style="background:#1a2332;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:12px;font-size:12px">
+                  <div style="color:#f87171;font-family:'JetBrains Mono',monospace">Windows cannot open this program because it has been prevented by a software restriction policy.</div>
+                </div>
+                <div style="font-size:12px;color:var(--emerald);margin-top:10px">✓ Execution blocked by enterprise policy.</div>
+              </div>
+            </div>
+          </div>
+          <button class="sim-run-btn" onclick="animateSim(3)">▶ Run Simulation</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- LAB -->
+  <section id="lab">
+    <div class="section-header">
+      <div class="section-num">08 — Enterprise Lab</div>
+      <h2 class="section-title">Hands-On Administration Walkthrough</h2>
+      <p class="section-desc">Follow this step-by-step enterprise lab. Click each step to expand detailed instructions, expected output, and enterprise context.</p>
+    </div>
+
+    <div class="lab-timeline">
+
+      <div class="lab-step" id="step-1">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-1')">
+            <div class="step-num-badge">01</div>
+            <div class="step-title">Open Group Policy Management Console</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-grid">
+              <div class="step-explain">
+                Open <strong style="color:var(--emerald)">Server Manager</strong> on the Domain Controller, navigate to <strong style="color:var(--emerald)">Tools → Group Policy Management</strong>. This console is your central administration hub for all enterprise policies.
+                <div class="step-note"><strong>Enterprise Relevance:</strong> All policy management happens here. Every GPO you create, link, or delete happens through this console — never on individual machines.</div>
+              </div>
+              <div>
+                <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:12px;color:var(--muted)">
+                  <div style="color:var(--heading);font-weight:600;margin-bottom:8px">Expected View</div>
+                  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8">
+                    🌐 Forest: corp.local<br>
+                    &nbsp;&nbsp;📁 Domains<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;🏢 corp.local<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📋 Group Policy Objects<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📁 Default Domain Policy
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-2">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-2')">
+            <div class="step-num-badge">02</div>
+            <div class="step-title">Create New GPO — Enterprise Security Policy</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-grid">
+              <div class="step-explain">
+                Right-click your domain or target OU → <strong style="color:var(--emerald)">Create a GPO in this domain and Link it here</strong>. Name it: <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">Enterprise Security Policy</code>. Meaningful names are essential in enterprise environments.
+                <div class="step-note"><strong>Naming Convention:</strong> Enterprises use descriptive names like <em>HR-Restrictions-2026</em> or <em>Password-Policy-Finance</em> to identify policy scope at a glance.</div>
+              </div>
+              <div>
+                <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:12px;color:var(--muted)">
+                  <div style="color:var(--heading);font-weight:600;margin-bottom:8px">Common Errors</div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <div style="display:flex;gap:8px"><span style="color:#f87171">✗</span> GPO not linked → created in wrong location</div>
+                    <div style="display:flex;gap:8px"><span style="color:#f87171">✗</span> Wrong OU selected → policy targets wrong group</div>
+                    <div style="display:flex;gap:8px"><span style="color:var(--emerald)">✓</span> Always confirm OU before creating</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-3">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-3')">
+            <div class="step-num-badge">03</div>
+            <div class="step-title">Link GPO to Organizational Unit</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-explain" style="margin-bottom:16px">
+              Select the target OU (e.g., <strong style="color:var(--emerald)">HR</strong> or <strong style="color:var(--emerald)">Finance</strong>) and link your GPO. Different departments can have different policies — HR may have stricter USB restrictions than IT.
+            </div>
+            <div class="flow-chain">
+              <span class="flow-node">🌐 Domain</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node">📁 HR OU</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node">📋 GPO Linked</span>
+              <span class="flow-arrow">→</span>
+              <span class="flow-node">💻 HR Machines Affected</span>
+            </div>
+            <div class="step-note" style="margin-top:12px"><strong>Enterprise Note:</strong> Linking controls scope. A GPO linked to the root domain applies to all systems. A GPO linked to an OU applies only to objects within that OU.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-4">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-4')">
+            <div class="step-num-badge">04</div>
+            <div class="step-title">Configure Password Policy</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-grid">
+              <div class="step-explain">
+                Navigate: <code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)">Computer Config → Policies → Windows Settings → Security Settings → Account Policies → Password Policy</code>
+                <br><br>Set: Minimum password length = <strong style="color:var(--emerald)">8</strong>, Complexity = <strong style="color:var(--emerald)">Enabled</strong>, Account lockout = <strong style="color:var(--emerald)">5 attempts</strong>.
+              </div>
+              <div>
+                <div style="background:#0a0d12;border-radius:8px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8">
+                  <span style="color:var(--emerald)">Setting</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--cyan)">Value</span><br>
+                  <span style="color:#64748b">─────────────────────────────</span><br>
+                  <span style="color:#94a3b8">Min Password Age</span>&nbsp;&nbsp;<span style="color:#f8fafc">1 day</span><br>
+                  <span style="color:#94a3b8">Min Length</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#f8fafc">8 chars</span><br>
+                  <span style="color:#94a3b8">Complexity</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--emerald)">Enabled</span><br>
+                  <span style="color:#94a3b8">Lockout Count</span>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#f8fafc">5 attempts</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-5">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-5')">
+            <div class="step-num-badge">05</div>
+            <div class="step-title">Disable Control Panel Access</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-explain">
+              Navigate: <code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)">User Config → Policies → Administrative Templates → Control Panel</code><br><br>
+              Enable: <strong style="color:var(--emerald)">"Prohibit access to the Control Panel and PC Settings"</strong>. After gpupdate, users attempting to open Control Panel will receive an access denied message.
+              <div class="step-note"><strong>Verification:</strong> After applying, login to client and press Win+X → verify Control Panel option is gone or blocked.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-6">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-6')">
+            <div class="step-num-badge">06</div>
+            <div class="step-title">Configure Wallpaper Policy</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-explain">
+              Navigate: <code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)">User Config → Admin Templates → Desktop → Desktop Wallpaper</code><br><br>
+              Enable the setting and provide a UNC path to the wallpaper file: <code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--emerald)">\\DC01\Wallpapers\company.jpg</code>. The wallpaper changes on next login.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-7">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-7')">
+            <div class="step-num-badge">07</div>
+            <div class="step-title">Configure USB Restriction</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div class="step-explain">
+              Navigate: <code style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)">Computer Config → Admin Templates → System → Removable Storage Access</code><br><br>
+              Enable: <strong style="color:var(--emerald)">"All Removable Storage classes: Deny all access"</strong>. This blocks USB drives, external HDDs, and memory cards at the system level.
+              <div class="step-note"><strong>Security Impact:</strong> This single setting dramatically reduces data exfiltration risk and prevents USB-based malware delivery — one of the most common enterprise attack vectors.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-8">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-8')">
+            <div class="step-num-badge">08</div>
+            <div class="step-title">Force Policy Update — gpupdate /force</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div style="margin-bottom:16px;font-size:13px;color:var(--body)">Policies don't always apply immediately. Run this command on the client or push it remotely to force immediate policy retrieval and application.</div>
+            <div class="terminal-block">
+              <div class="term-header">
+                <div class="term-dots"><span></span><span></span><span></span></div>
+                <div class="term-title">Windows PowerShell — Client Machine</div>
+                <button class="copy-btn" onclick="copyCmd('gpupdate /force')">Copy</button>
+              </div>
+              <div class="term-body">
+                <div><span class="term-prompt">PS C:\&gt; </span><span class="term-cmd">gpupdate /force</span></div>
+                <div class="term-output">Updating policy...</div>
+                <div class="term-output" style="color:var(--emerald)">Computer Policy update has completed successfully.</div>
+                <div class="term-output" style="color:var(--emerald)">User Policy update has completed successfully.</div>
+                <span class="term-cursor"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-9">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-9')">
+            <div class="step-num-badge">09</div>
+            <div class="step-title">Verify with gpresult /r</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div style="margin-bottom:16px;font-size:13px;color:var(--body)">Confirm which policies are actually applied on a given client machine using the gpresult command.</div>
+            <div class="terminal-block">
+              <div class="term-header">
+                <div class="term-dots"><span></span><span></span><span></span></div>
+                <div class="term-title">Windows PowerShell — Client Machine</div>
+                <button class="copy-btn" onclick="copyCmd('gpresult /r')">Copy</button>
+              </div>
+              <div class="term-body">
+                <div><span class="term-prompt">PS C:\&gt; </span><span class="term-cmd">gpresult /r</span></div>
+                <div class="term-output"><br>COMPUTER SETTINGS<br>─────────────────</div>
+                <div class="term-output">Applied Group Policy Objects</div>
+                <div class="term-output" style="color:var(--emerald)">&nbsp;&nbsp;&nbsp;&nbsp;Enterprise Security Policy</div>
+                <div class="term-output" style="color:var(--emerald)">&nbsp;&nbsp;&nbsp;&nbsp;Default Domain Policy</div>
+                <div class="term-output"><br>USER SETTINGS<br>─────────────</div>
+                <div class="term-output" style="color:var(--emerald)">&nbsp;&nbsp;&nbsp;&nbsp;Enterprise Security Policy</div>
+                <span class="term-cursor"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lab-step" id="step-10">
+        <div class="lab-step-dot"></div>
+        <div class="lab-step-inner">
+          <div class="lab-step-header" onclick="toggleStep('step-10')">
+            <div class="step-num-badge">10</div>
+            <div class="step-title">Client Machine — Verify All Restrictions</div>
+            <span class="step-chevron">▼</span>
+          </div>
+          <div class="lab-step-body">
+            <div style="font-size:13px;color:var(--body);margin-bottom:16px">Log in to the client machine and verify each policy is enforced. This is the MOST important step — seeing centralized control in action.</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+              <div style="background:var(--bg3);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;font-size:12px">
+                <div style="color:var(--emerald);font-weight:600;margin-bottom:4px">✓ Password Policy</div>
+                <div style="color:var(--muted)">Weak passwords rejected at login</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;font-size:12px">
+                <div style="color:var(--emerald);font-weight:600;margin-bottom:4px">✓ Control Panel</div>
+                <div style="color:var(--muted)">Access denied message shown</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;font-size:12px">
+                <div style="color:var(--emerald);font-weight:600;margin-bottom:4px">✓ Wallpaper</div>
+                <div style="color:var(--muted)">Company wallpaper visible</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;font-size:12px">
+                <div style="color:var(--emerald);font-weight:600;margin-bottom:4px">✓ USB Blocked</div>
+                <div style="color:var(--muted)">Drive not accessible</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ASSESSMENT -->
+  <section id="assessment">
+    <div class="section-header">
+      <div class="section-num">09 — Assessment</div>
+      <h2 class="section-title">Test Your Understanding</h2>
+      <p class="section-desc">Enterprise-style questions covering concepts, scenarios, and practical verification. Click "Reveal Answer" to check.</p>
+    </div>
+
+    <div class="quiz-grid">
+      <div class="quiz-card">
+        <div class="quiz-type">Conceptual</div>
+        <div class="quiz-q">What is a Group Policy Object and what problem does it solve for enterprise administrators?</div>
+        <button class="reveal-btn" onclick="revealAnswer(this)">Reveal Answer</button>
+        <div class="quiz-answer">A GPO is a set of centralized rules and configurations applied to users and computers in an Active Directory domain. It solves the problem of manual configuration — instead of setting up 500 computers individually, admins define one policy that applies automatically to all systems.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-type">Scenario-Based</div>
+        <div class="quiz-q">An employee plugs in a USB drive and copies confidential client data. What GPO setting prevents this, and where is it configured?</div>
+        <button class="reveal-btn" onclick="revealAnswer(this)">Reveal Answer</button>
+        <div class="quiz-answer">Enable "All Removable Storage classes: Deny all access" under Computer Config → Admin Templates → System → Removable Storage Access. This blocks all USB and external storage devices at the system policy level.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-type">Practical</div>
+        <div class="quiz-q">You apply a GPO to the HR OU but restrictions aren't working on client machines. What are the first two things you check?</div>
+        <button class="reveal-btn" onclick="revealAnswer(this)">Reveal Answer</button>
+        <div class="quiz-answer">1) Verify the GPO is correctly linked to the HR OU (not just created in the wrong location). 2) Run <code style="font-family:'JetBrains Mono',monospace">gpupdate /force</code> on the client to force immediate policy retrieval from the Domain Controller.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-type">Security Reasoning</div>
+        <div class="quiz-q">Why is a domain password policy more secure than asking employees to create strong passwords voluntarily?</div>
+        <button class="reveal-btn" onclick="revealAnswer(this)">Reveal Answer</button>
+        <div class="quiz-answer">Voluntary compliance fails in practice — employees consistently choose weak, memorable passwords. A domain GPO enforces complexity, minimum length, and lockout policies technically at the system level, making weak passwords literally impossible to set.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-type">Visual ID</div>
+        <div class="quiz-q">What is the difference between a Local Policy and a Domain Policy? When would you use each?</div>
+        <button class="reveal-btn" onclick="revealAnswer(this)">Reveal Answer</button>
+        <div class="quiz-answer">Local Policy applies to a single computer only — useful for testing or standalone machines with no AD. Domain Policy applies to all machines within an OU or domain automatically. In enterprise environments, domain policies are always preferred for scalability and consistency.</div>
+      </div>
+
+      <div class="quiz-card">
+        <div class="quiz-type">Command Knowledge</div>
+        <div class="quiz-q">What does <code style="font-family:'JetBrains Mono',monospace">gpresult /r</code> show you, and when would an administrator run it?</div>
+        <button class="reveal-btn" onclick="revealAnswer(this)">Reveal Answer</button>
+        <div class="quiz-answer">gpresult /r displays all Group Policy Objects currently applied to a machine and user, along with the Resultant Set of Policy. Admins run it during troubleshooting to confirm which policies are active and diagnose why an expected restriction isn't appearing.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TROUBLESHOOTING -->
+  <section id="troubleshooting">
+    <div class="section-header">
+      <div class="section-num">10 — Troubleshooting</div>
+      <h2 class="section-title">Common GPO Problems & Fixes</h2>
+      <p class="section-desc">Click each card to expand causes and solutions. Troubleshooting is a core enterprise administration skill.</p>
+    </div>
+
+    <div class="trouble-grid">
+
+      <div class="trouble-card">
+        <div class="trouble-header" onclick="toggleTrouble(this)">
+          <div class="trouble-icon">⚠️</div>
+          <div class="trouble-title">Policy Not Applying</div>
+          <span style="color:var(--muted);font-size:12px">▼</span>
+        </div>
+        <div class="trouble-body">
+          <div class="trouble-causes">
+            <div class="trouble-causes-title">Possible Causes</div>
+            <div class="cause-item">GPO linked to wrong OU</div>
+            <div class="cause-item">gpupdate not run after changes</div>
+            <div class="cause-item">Wrong policy scope (User vs Computer)</div>
+            <div class="cause-item">Client machine not in target OU</div>
+          </div>
+          <div class="trouble-causes-title">Fix Steps</div>
+          <div class="fix-item">Verify GPO linkage under correct OU in GPMC</div>
+          <div class="fix-item">Run <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">gpupdate /force</code> on client</div>
+          <div class="fix-item">Use <code style="font-family:'JetBrains Mono',monospace;color:var(--cyan)">gpresult /r</code> to confirm applied policies</div>
+          <div class="fix-item">Move machine to correct OU if needed</div>
+        </div>
+      </div>
+
+      <div class="trouble-card">
+        <div class="trouble-header" onclick="toggleTrouble(this)">
+          <div class="trouble-icon">🔌</div>
+          <div class="trouble-title">USB Still Accessible After Policy</div>
+          <span style="color:var(--muted);font-size:12px">▼</span>
+        </div>
+        <div class="trouble-body">
+          <div class="trouble-causes">
+            <div class="trouble-causes-title">Possible Causes</div>
+            <div class="cause-item">Wrong setting path used</div>
+            <div class="cause-item">Policy configured under User config instead of Computer</div>
+            <div class="cause-item">GPO not linked to machine's OU</div>
+          </div>
+          <div class="trouble-causes-title">Fix Steps</div>
+          <div class="fix-item">Confirm path: Computer Config → Admin Templates → System → Removable Storage</div>
+          <div class="fix-item">Ensure "Deny All Access" is set to Enabled</div>
+          <div class="fix-item">Run gpupdate and reboot client</div>
+        </div>
+      </div>
+
+      <div class="trouble-card">
+        <div class="trouble-header" onclick="toggleTrouble(this)">
+          <div class="trouble-icon">🔑</div>
+          <div class="trouble-title">Weak Password Still Accepted</div>
+          <span style="color:var(--muted);font-size:12px">▼</span>
+        </div>
+        <div class="trouble-body">
+          <div class="trouble-causes">
+            <div class="trouble-causes-title">Possible Causes</div>
+            <div class="cause-item">Password complexity not enabled</div>
+            <div class="cause-item">Policy not applied to domain root</div>
+            <div class="cause-item">Local policy overriding domain policy</div>
+          </div>
+          <div class="trouble-causes-title">Fix Steps</div>
+          <div class="fix-item">Verify complexity is set to "Enabled" in Account Policies</div>
+          <div class="fix-item">Ensure the GPO is linked to the domain root, not just an OU</div>
+          <div class="fix-item">Check gpresult to confirm policy is applied</div>
+        </div>
+      </div>
+
+      <div class="trouble-card">
+        <div class="trouble-header" onclick="toggleTrouble(this)">
+          <div class="trouble-icon">🖼</div>
+          <div class="trouble-title">Wallpaper Not Changing</div>
+          <span style="color:var(--muted);font-size:12px">▼</span>
+        </div>
+        <div class="trouble-body">
+          <div class="trouble-causes">
+            <div class="trouble-causes-title">Possible Causes</div>
+            <div class="cause-item">UNC path to wallpaper file is incorrect</div>
+            <div class="cause-item">Client cannot access the file share</div>
+            <div class="cause-item">Policy requires re-login to take effect</div>
+          </div>
+          <div class="trouble-causes-title">Fix Steps</div>
+          <div class="fix-item">Verify the UNC path: \\server\share\wallpaper.jpg is accessible from client</div>
+          <div class="fix-item">Log off and log back in (not just gpupdate)</div>
+          <div class="fix-item">Check file share permissions</div>
+        </div>
+      </div>
+
+      <div class="trouble-card">
+        <div class="trouble-header" onclick="toggleTrouble(this)">
+          <div class="trouble-icon">⛔</div>
+          <div class="trouble-title">gpupdate /force Fails</div>
+          <span style="color:var(--muted);font-size:12px">▼</span>
+        </div>
+        <div class="trouble-body">
+          <div class="trouble-causes">
+            <div class="trouble-causes-title">Possible Causes</div>
+            <div class="cause-item">Client cannot reach Domain Controller</div>
+            <div class="cause-item">DNS not resolving domain name</div>
+            <div class="cause-item">Firewall blocking Group Policy traffic</div>
+          </div>
+          <div class="trouble-causes-title">Fix Steps</div>
+          <div class="fix-item">Ping the Domain Controller by name to test connectivity</div>
+          <div class="fix-item">Verify DNS settings point to DC's IP</div>
+          <div class="fix-item">Check Windows Firewall allows Group Policy traffic (port 135, 445)</div>
+        </div>
+      </div>
+
+      <div class="trouble-card">
+        <div class="trouble-header" onclick="toggleTrouble(this)">
+          <div class="trouble-icon">📋</div>
+          <div class="trouble-title">Wrong Machines Getting Policy</div>
+          <span style="color:var(--muted);font-size:12px">▼</span>
+        </div>
+        <div class="trouble-body">
+          <div class="trouble-causes">
+            <div class="trouble-causes-title">Possible Causes</div>
+            <div class="cause-item">GPO linked to parent OU — applies to all child OUs</div>
+            <div class="cause-item">Machines in incorrect OU placement</div>
+          </div>
+          <div class="trouble-causes-title">Fix Steps</div>
+          <div class="fix-item">Review GPO linkage — link to specific OU, not parent</div>
+          <div class="fix-item">Move computer objects to correct OU in Active Directory</div>
+          <div class="fix-item">Use Security Filtering to scope policy to specific groups</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- RECAP -->
+  <section id="recap">
+    <div class="section-header">
+      <div class="section-num">11 — Day Recap</div>
+      <h2 class="section-title">Enterprise Administration Complete</h2>
+      <p class="section-desc">You've completed Day 6. Here's what you accomplished — from concept to live enforcement.</p>
+    </div>
+
+    <div class="recap-flow">
+      <div class="recap-node highlight">
+        <div class="recap-node-icon">👨‍💼</div>
+        <div class="recap-node-title">Administrator</div>
+        <div class="recap-node-sub">Defines enterprise policies once</div>
+      </div>
+      <div class="recap-connector"></div>
+      <div class="recap-node">
+        <div class="recap-node-icon">📋</div>
+        <div class="recap-node-title">Group Policy Object</div>
+        <div class="recap-node-sub">Centralized rule set on Domain Controller</div>
+      </div>
+      <div class="recap-connector"></div>
+      <div class="recap-node">
+        <div class="recap-node-icon">🔒</div>
+        <div class="recap-node-title">Enterprise Restrictions</div>
+        <div class="recap-node-sub">Password, USB, Control Panel, Wallpaper, Apps</div>
+      </div>
+      <div class="recap-connector"></div>
+      <div class="recap-node">
+        <div class="recap-node-icon">💻</div>
+        <div class="recap-node-title">Client Systems</div>
+        <div class="recap-node-sub">All machines in target OUs</div>
+      </div>
+      <div class="recap-connector"></div>
+      <div class="recap-node highlight">
+        <div class="recap-node-icon">🛡</div>
+        <div class="recap-node-title">Centralized Security Enforcement</div>
+        <div class="recap-node-sub">Consistent protection across the enterprise</div>
+      </div>
+    </div>
+
+    <div class="recap-skills">
+      <div class="skill-item"><span class="skill-check">✓</span> Understand what GPO is and why enterprises need it</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Create and link GPOs in GPMC</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Apply and enforce password policies</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Configure Control Panel restrictions</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Block USB devices via Removable Storage policy</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Set company wallpaper centrally</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Restrict application execution</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Force policy updates with gpupdate</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Verify applied policies with gpresult</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Troubleshoot common GPO issues</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Understand Local vs Domain policy scope</div>
+      <div class="skill-item"><span class="skill-check">✓</span> Apply enterprise security baselines</div>
+    </div>
+
+    <div style="text-align:center;margin-top:48px;padding:40px;background:var(--card);border:1px solid var(--border);border-radius:16px">
+      <div style="font-size:48px;margin-bottom:12px">🎓</div>
+      <div style="font-family:'Sora',sans-serif;font-size:20px;font-weight:700;color:var(--heading);margin-bottom:8px">Day 6 Complete</div>
+      <div style="font-size:14px;color:var(--muted);max-width:400px;margin:0 auto">You now understand enterprise-grade centralized security administration. Day 5 was WHO can access. Day 6 is WHAT they're allowed to do.</div>
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:24px;flex-wrap:wrap">
+        <div style="background:var(--emerald-dim);border:1px solid rgba(16,185,129,0.2);color:var(--emerald);font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 16px;border-radius:6px">← Day 5: Active Directory</div>
+        <div style="background:var(--cyan-dim);border:1px solid rgba(6,182,212,0.2);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 16px;border-radius:6px">Day 7: Network Security →</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ===== SIDEBAR ACTIVE TRACKING =====
+const sections = document.querySelectorAll('section, .hero');
+const navItems = document.querySelectorAll('.nav-item');
+
+function updateActive() {
+  let current = '';
+  sections.forEach(s => {
+    const top = s.getBoundingClientRect().top;
+    if (top <= 120) current = s.id;
+  });
+
+  navItems.forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('href') === '#' + current) {
+      item.classList.add('active');
+    }
+  });
+
+  // Progress
+  const scrolled = window.scrollY;
+  const total = document.body.scrollHeight - window.innerHeight;
+  const pct = Math.round((scrolled / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+// Set intro as first active
+document.querySelector('[href="#intro"]')?.classList.add('active');
+
+window.addEventListener('scroll', updateActive, { passive: true });
+
+// ===== SECTION REVEAL =====
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('section').forEach(s => observer.observe(s));
+
+// ===== LAB STEPS =====
+function toggleStep(id) {
+  const step = document.getElementById(id);
+  const body = step.querySelector('.lab-step-body');
+  const isOpen = step.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.lab-step').forEach(s => {
+    s.classList.remove('open');
+    s.querySelector('.lab-step-body').classList.remove('open');
+  });
+  if (!isOpen) {
+    step.classList.add('open');
+    body.classList.add('open');
+  }
+}
+
+// ===== TROUBLE CARDS =====
+function toggleTrouble(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.trouble-body').forEach(b => b.classList.remove('open'));
+  if (!isOpen) body.classList.add('open');
+}
+
+// ===== QUIZ REVEAL =====
+function revealAnswer(btn) {
+  const answer = btn.nextElementSibling;
+  if (answer.classList.contains('visible')) {
+    answer.classList.remove('visible');
+    btn.textContent = 'Reveal Answer';
+  } else {
+    answer.classList.add('visible');
+    btn.textContent = 'Hide Answer';
+  }
+}
+
+// ===== SIM TABS =====
+function switchSim(idx) {
+  document.querySelectorAll('.sim-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.sim-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+}
+
+// ===== SIM ANIMATION =====
+function animateSim(idx) {
+  const panel = document.getElementById('sim-' + idx);
+  const steps = panel.querySelectorAll('.sim-step');
+  steps.forEach(s => s.classList.remove('active'));
+
+  let i = 0;
+  const run = () => {
+    if (i < steps.length) {
+      steps[i].classList.add('active');
+      i++;
+      setTimeout(run, 600);
+    }
+  };
+  run();
+}
+
+// ===== COPY COMMAND =====
+function copyCmd(cmd) {
+  navigator.clipboard.writeText(cmd).catch(() => {});
+  event.target.textContent = 'Copied!';
+  setTimeout(() => event.target.textContent = 'Copy', 1500);
+}
+
+// ===== MOBILE MENU =====
+function toggleMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMenu() {
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+</script>
+</body>
+</html>
